@@ -45,11 +45,9 @@ const PRODUCTOS = [
 ];
 
 async function main() {
-  // Orden inverso a las relaciones: primero lo que depende de otros
-  await prisma.lineaPedido.deleteMany();
-  await prisma.pedido.deleteMany();
-  await prisma.producto.deleteMany();
-  await prisma.categoria.deleteMany();
+  // Vaciamos las 4 tablas Y reiniciamos los contadores de id (RESTART IDENTITY).
+  // Con deleteMany los id seguian creciendo (13, 14...) y los enlaces /producto/1 dejaban de existir.
+  await prisma.$executeRaw`TRUNCATE "LineaPedido", "Pedido", "Producto", "Categoria" RESTART IDENTITY CASCADE`;
 
   for (const c of CATEGORIAS) {
     await prisma.categoria.create({
