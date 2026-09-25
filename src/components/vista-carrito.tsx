@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
+import { BotonPagar } from "@/components/boton-pagar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { formatearPrecio } from "@/lib/formato";
@@ -59,7 +60,10 @@ export function VistaCarrito() {
           <p className="text-2xl font-bold">{formatearPrecio(calcularTotal(lineas))}</p>
         </div>
       </div>
-      <p className="text-right text-sm text-muted-foreground">El pago con Stripe llega en la Sesion 3.</p>
+      <div className="flex justify-end">
+        <BotonPagar lineas={lineas} />
+      </div>
+      <p className="text-right text-xs text-muted-foreground">Pago seguro con Stripe (modo test: no se cobra nada)</p>
     </div>
   );
 }
