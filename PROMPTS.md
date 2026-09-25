@@ -150,3 +150,156 @@ Una migracion nueva en prisma/migrations y la columna marcaId en la tabla Produc
 ---
 
 *Material del Master Desarrollo Agéntico · Proyecto Ecommerce · The Power · Ignacio de Pastors*
+
+# Proyecto Ecommerce · Sesión 2 · Catálogo, búsqueda con filtros y carrito · Prompts para Claude Code
+
+Estos son los prompts que usamos en la práctica, en el mismo orden que en clase. Cópialos y pégalos en Claude Code uno a uno.
+
+**Cómo usarlos**
+1. Pega el prompt del paso y deja que Claude Code proponga los cambios.
+2. **Lee el código antes de aceptar** (y los comandos, como `npm install` o `prisma migrate`, antes de permitirlos).
+3. Ejecuta y compara con el apartado *Qué deberías ver*.
+4. Si no sale lo esperado, vuelve a pedírselo con lo que has aprendido.
+
+> Antes de empezar: el proyecto `tienda-online` tal como quedó en la Sesión 1 (Next.js 15, Prisma, Neon con los 12 productos y Stripe en modo test). Hoy se instalan shadcn/ui (`npx shadcn@latest init`) y Zustand (`npm install zustand`). Ojo: el shadcn actual usa Base UI, no Radix, así que los ejemplos con `asChild` de tutoriales antiguos no te valen. Abre Claude Code en la carpeta del proyecto.
+
+El resultado de referencia, con todo el código comentado, está en la carpeta `codigo/tienda-online` del material.
+
+---
+
+## Paso 1 · UI base con shadcn/ui
+
+**Qué construye**
+
+- shadcn init + card, badge, input...
+- Cabecera con logo e icono del carrito
+- Tarjeta: imagen, categoria, precio, agotado
+- Rejilla de 2, 3 o 4 columnas segun la pantalla
+
+**Prompt**
+
+```text
+Instala shadcn/ui en el proyecto y monta la UI base de la tienda: una cabecera con el logo y el icono del carrito, y una pagina de catalogo con una rejilla responsive de tarjetas de producto. Usa el componente Image de Next.js para las imagenes. Trae los productos reales desde la base de datos (Server Component).
+```
+
+**Qué deberías ver**
+
+Los 12 productos de Neon, ordenados por precio. Las chanclas, con su badge de agotado.
+
+---
+
+## Paso 2 · Busqueda y filtros
+
+**Qué construye**
+
+- Busqueda por nombre (sin distinguir mayusculas)
+- Chips de categoria
+- Rango de precio en euros
+- Todo en la URL: compartible y sin estado
+
+**Prompt**
+
+```text
+Anade busqueda y filtros al catalogo: una barra de busqueda por nombre y filtros por categoria y rango de precio. Resuelve el filtrado en el servidor con Prisma usando los search params de la URL, para que sea compartible y funcione sin recargar. Explica como usas los searchParams en el App Router.
+```
+
+**Qué deberías ver**
+
+La URL lleva los cuatro filtros a la vez: reloj, relojes, 50 y 100 euros. Un resultado.
+
+### Variación en vivo: ¿Y si alguien escribe SQL en el buscador?
+
+```text
+Prueba a buscar en el catalogo el texto '; DROP TABLE "Producto"; -- y explicame por que no pasa nada. Ensename el SQL que genera Prisma con el log de consultas activado.
+```
+
+**Qué demuestra**
+
+0 productos y la tabla intacta. Prisma envia el texto como parametro: Postgres lo trata como un dato, nunca como una orden.
+
+---
+
+## Paso 3 · Pagina de producto
+
+**Qué construye**
+
+- Ruta dinamica /producto/[id]
+- Imagen grande, precio, descripcion y stock
+- Selector de cantidad y boton
+- 404 si el producto no existe
+
+**Prompt**
+
+```text
+Crea la pagina de detalle de producto con ruta dinamica (app/producto/[id]). Muestra la imagen grande, nombre, descripcion, precio y stock, con un selector de cantidad y un boton 'anadir al carrito'. Si el producto no existe, muestra un 404. Comenta como funciona el enrutado dinamico.
+```
+
+**Qué deberías ver**
+
+El titulo de la pestana dice 'Auriculares Volta Pulse · Tienda Volta': lo genera generateMetadata.
+
+---
+
+## Paso 4 · Carrito con Zustand
+
+**Qué construye**
+
+- Store: anadir, cambiar cantidad, quitar, vaciar
+- Total y numero de articulos calculados
+- Icono con el numero en vivo
+- Pagina /carrito
+
+**Prompt**
+
+```text
+Monta el carrito con Zustand: un store con las acciones anadir, quitar y cambiar cantidad, y el total calculado. Conecta el icono del carrito de la cabecera para que muestre en vivo el numero de articulos, y crea una pagina de carrito que liste lo anadido. Explica por que Zustand es mas simple que Context para esto.
+```
+
+**Qué deberías ver**
+
+2 auriculares (99,80) + 1 reloj (89,90) = 189,70 €. El icono de arriba marca 3.
+
+---
+
+## Paso 5 · Persistencia del carrito
+
+**Qué construye**
+
+- persist de Zustand sobre localStorage
+- Solo se guardan las lineas
+- Prueba: recargar, cerrar y reabrir
+- Commit y cierre de la sesion
+
+**Prompt**
+
+```text
+Haz que el carrito persista cuando cierro la aplicacion o el navegador, usando el middleware persist de Zustand sobre localStorage. Comprueba que si anado productos, cierro y reabro, siguen ahi. Deja todo commiteado y resume que viene en la Sesion 3 (checkout con Stripe).
+```
+
+**Qué deberías ver**
+
+Edge cerrado y vuelto a abrir con el mismo perfil: los 3 articulos siguen ahi.
+
+---
+
+## Antes de la Sesion 3 · ordenar el catalogo
+
+**Qué construye**
+
+- Parametro orden en la URL
+- Validacion en el servidor
+- Compatible con los filtros
+
+**Prompt**
+
+```text
+Anade al catalogo un selector para ordenar por precio (ascendente y descendente) y por nombre. El orden debe ir en la URL (?orden=precio-asc, por ejemplo), validarse en el servidor y convivir con los filtros que ya tenemos. Ensename el SQL que genera Prisma para uno de los ordenes.
+```
+
+**Qué deberías ver**
+
+La misma URL con ?orden=precio-desc muestra primero el reloj de 159 €.
+
+---
+
+*Material del Master Desarrollo Agéntico · Proyecto Ecommerce · The Power · Ignacio de Pastors*
