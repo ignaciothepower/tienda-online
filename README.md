@@ -1,9 +1,9 @@
 # Tienda Volta · proyecto Ecommerce
 
 Tienda online de ejemplo del proyecto Ecommerce (Master Desarrollo Agentico, The Power).
-Next.js 15 (App Router) + TypeScript + Prisma + PostgreSQL (Neon) + Stripe (modo test).
+Next.js 15 (App Router) + TypeScript + Prisma + PostgreSQL (Neon) + Stripe (modo test) + shadcn/ui + Zustand.
 
-> Estado: **Sesion 1** (cimientos). Catalogo y carrito llegan en la S2, el pago en la S3 y el despliegue en la S4.
+> Estado: **Sesion 2** (catalogo, busqueda y filtros, pagina de producto y carrito persistente). El pago llega en la S3 y el despliegue en la S4.
 
 ## Arrancarlo en local
 
@@ -28,7 +28,10 @@ CLAUDE.md                contexto y convenciones del proyecto
 prisma/schema.prisma     modelo de datos: Categoria, Producto, Pedido, LineaPedido
 prisma/migrations/       SQL generado por Prisma (va al repositorio)
 prisma/seed.ts           datos de ejemplo
-src/app/                 paginas (App Router)
+src/app/                 paginas (App Router): catalogo, producto/[id], carrito, not-found
+src/components/          cabecera, tarjeta, filtros, carrito (y ui/ de shadcn)
+src/store/carrito.ts     carrito con Zustand + persist (localStorage)
+src/lib/catalogo.ts      busqueda y filtros con Prisma a partir de la URL
 src/lib/prisma.ts        instancia unica de Prisma
 src/lib/stripe.ts        instancia de Stripe (solo servidor)
 scripts/                 comprobaciones de base de datos y Stripe
