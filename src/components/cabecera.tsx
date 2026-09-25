@@ -7,9 +7,7 @@ export function Cabecera() {
     <header className="sticky top-0 z-10 border-b bg-background/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2">
-          <span className="grid size-8 place-items-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
-            V
-          </span>
+          <span className="grid size-8 place-items-center rounded-lg bg-primary font-bold text-primary-foreground">V</span>
           <span className="text-lg font-semibold tracking-tight">Tienda Volta</span>
         </Link>
         <nav className="flex items-center gap-6 text-sm">
