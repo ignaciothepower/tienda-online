@@ -1,0 +1,152 @@
+# Proyecto Ecommerce · Sesión 1 · Especificaciones, arquitectura y estructura · Prompts para Claude Code
+
+Estos son los prompts que usamos en la práctica, en el mismo orden que en clase. Cópialos y pégalos en Claude Code uno a uno.
+
+**Cómo usarlos**
+1. Pega el prompt del paso y deja que Claude Code proponga los cambios.
+2. **Lee el código antes de aceptar** (y los comandos, como `npm install` o `prisma migrate`, antes de permitirlos).
+3. Ejecuta y compara con el apartado *Qué deberías ver*.
+4. Si no sale lo esperado, vuelve a pedírselo con lo que has aprendido.
+
+> Antes de empezar: Node.js 20 o superior (vale el zip portable de nodejs.org, sin instalar), Git, una cuenta gratuita de [Neon](https://console.neon.tech) con una base de datos llamada `tienda` (o Docker, con el `docker-compose.yml` del material) y una cuenta de [Stripe](https://dashboard.stripe.com/register) en **modo test**. Las URLs de la base y las claves `pk_test_` / `sk_test_` van en el `.env` (plantilla en `.env.example`). **Nunca compartas ni subas tu `.env`.** Abre Claude Code en una carpeta vacía.
+
+El resultado de referencia, con todo el código comentado, está en la carpeta `codigo/tienda-online` del material.
+
+---
+
+## Paso 1 · Especificar el proyecto y crear el repo
+
+**Qué construye**
+
+- Especificacion: paginas, modelo, reglas
+- Next.js 15 + App Router + TypeScript
+- Tailwind y ESLint de serie
+- CLAUDE.md con stack y convenciones
+
+**Prompt**
+
+```text
+Vamos a construir una tienda online. Ayudame a escribir una breve especificacion (que paginas tiene: catalogo, producto, carrito, checkout, admin) y crea un proyecto Next.js 15 con App Router, TypeScript y Tailwind. Crea tambien un CLAUDE.md con el contexto del proyecto y las convenciones. Arrancalo en local y ensename la pagina inicial.
+```
+
+**Qué deberías ver**
+
+323 paquetes en 2 minutos y un repositorio Git ya inicializado. Next 15.5.25, React 19.
+
+---
+
+## Paso 2 · Base de datos: Neon (Docker, alternativa)
+
+**Qué construye**
+
+- docker-compose.yml listo para quien tenga Docker
+- En clase: base 'tienda' en Neon (free tier)
+- Dos URLs en el .env: con pooler y directa
+- Script que comprueba la conexion
+
+**Prompt**
+
+```text
+Vamos a usar PostgreSQL gestionado en Neon (free tier), en una base de datos llamada tienda. Preparame el .env con dos URLs, DATABASE_URL (con pooler, para la app) y DIRECT_URL (directa, para las migraciones), y un .env.example sin valores que si se suba a git. Crea tambien un docker-compose.yml con PostgreSQL (imagen alpine, variables de entorno, volumen persistente) como alternativa local, explicando cada parte para un principiante. Por ultimo, un script npm run db:check que conecte y muestre base, usuario y version, para verificar que la base responde.
+```
+
+**Qué deberías ver**
+
+Base 'tienda', PostgreSQL 18.6 y 331 ms de ida y vuelta. El host sale tapado: es parte de un secreto.
+
+---
+
+## Paso 3 · Modelar datos con Prisma
+
+**Qué construye**
+
+- Prisma 7 + driver pg (adapter)
+- Categoria, Producto, Pedido, LineaPedido
+- Enum con los estados del pedido
+- migrate dev: SQL generado y aplicado en Neon
+
+**Prompt**
+
+```text
+Instala y configura Prisma conectado a la base de datos Postgres. Define el schema con tres modelos y sus relaciones: Categoria (una categoria tiene muchos productos), Producto (nombre, descripcion, precio, imagen, stock, categoria) y Pedido (con sus lineas de pedido y un estado). Ejecuta la migracion y abre Prisma Studio para ver las tablas.
+```
+
+**Qué deberías ver**
+
+La migracion 20260925220813_inicial se crea y se aplica en Neon en un solo comando.
+
+---
+
+## Paso 4 · Datos de ejemplo y conectar Stripe
+
+**Qué construye**
+
+- Seed: 4 categorias y 12 productos Volta
+- Imagenes SVG en public/productos
+- Stripe en modo test: claves en .env
+- lib/stripe.ts con server-only
+
+**Prompt**
+
+```text
+Crea un script de seed que rellene la base de datos con unas categorias y varios productos de ejemplo. Luego prepara la integracion de Stripe en modo test: instala el SDK, guarda las claves en un .env (con .gitignore) y crea un fichero lib/stripe.ts con la instancia del servidor. Recuerdame que la secret key nunca va al cliente.
+```
+
+**Qué deberías ver**
+
+3 productos por categoria. Las chanclas tienen stock 0: nos servira para probar 'agotado'.
+
+### Variación en vivo: ¿Y si un componente de cliente importa lib/stripe.ts?
+
+```text
+Crea una pagina de prueba con "use client" que importe la instancia de Stripe de lib/stripe.ts, ensename que error da Next.js y explicame por que server-only protege la clave secreta. Luego borra la pagina.
+```
+
+**Qué demuestra**
+
+El build se para con un error claro que senala la linea de server-only. La clave nunca llega a empaquetarse para el navegador.
+
+---
+
+## Paso 5 · Repaso de arquitectura y cierre
+
+**Qué construye**
+
+- El mapa: lo hecho y lo que falta
+- Linter limpio antes de cerrar
+- Un commit por paso con mensajes claros
+- README con como arrancarlo
+
+**Prompt**
+
+```text
+Hazme un repaso de la arquitectura montada: estructura de carpetas de Next.js, el modelo de datos de Prisma y como encaja Stripe. Deja todo commiteado en Git con mensajes claros. Resume que construiremos en la proxima sesion (catalogo, busqueda y carrito).
+```
+
+**Qué deberías ver**
+
+6 commits, uno por paso. Y check-ignore confirma que el .env y el cliente generado se quedan fuera.
+
+---
+
+## Antes de la Sesion 2 · un modelo mas
+
+**Qué construye**
+
+- Modelo Marca 1-N Producto
+- Migracion nueva
+- Seed actualizado
+
+**Prompt**
+
+```text
+Anade al schema de Prisma un modelo Marca (nombre y slug unicos) con una relacion 1 a N con Producto. Crea la migracion con un nombre descriptivo, actualiza el seed para que cada producto tenga su marca y ensename las tablas en Prisma Studio. Explica que SQL ha generado la migracion.
+```
+
+**Qué deberías ver**
+
+Una migracion nueva en prisma/migrations y la columna marcaId en la tabla Producto.
+
+---
+
+*Material del Master Desarrollo Agéntico · Proyecto Ecommerce · The Power · Ignacio de Pastors*
