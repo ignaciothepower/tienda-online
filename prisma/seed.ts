@@ -56,8 +56,12 @@ async function main() {
       data: {
         ...c,
         productos: {
-          create: PRODUCTOS.filter((p) => p.cat === c.slug).map(({ cat: _cat, ...p }) => ({
-            ...p,
+          create: PRODUCTOS.filter((p) => p.cat === c.slug).map((p) => ({
+            nombre: p.nombre,
+            slug: p.slug,
+            descripcion: p.descripcion,
+            precio: p.precio,
+            stock: p.stock,
             imagen: `/productos/${p.slug}.svg`,
           })),
         },
