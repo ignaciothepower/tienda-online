@@ -10,7 +10,8 @@
     "postinstall": "prisma generate",
     "seed": "prisma db seed",
     "db:check": "tsx scripts/comprobar-db.ts",
-    "stripe:check": "tsx scripts/comprobar-stripe.ts"
+    "stripe:check": "tsx scripts/comprobar-stripe.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -35,7 +36,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^24.13.6",
     "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -45,6 +46,7 @@
     "prisma": "7.10.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^5.0.1"
   }
 }
