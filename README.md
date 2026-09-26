@@ -3,7 +3,7 @@
 Tienda online de ejemplo del proyecto Ecommerce (Master Desarrollo Agentico, The Power).
 Next.js 15 (App Router) + TypeScript + Prisma + PostgreSQL (Neon) + Stripe (modo test) + shadcn/ui + Zustand.
 
-> Estado: **Sesion 2** (catalogo, busqueda y filtros, pagina de producto y carrito persistente). El pago llega en la S3 y el despliegue en la S4.
+> Estado: **Sesion 3** (pago con Stripe Checkout, webhook firmado, email con Resend). Panel de admin y despliegue en la S4.
 
 ## Arrancarlo en local
 

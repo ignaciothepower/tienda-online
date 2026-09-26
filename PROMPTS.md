@@ -303,3 +303,146 @@ La misma URL con ?orden=precio-desc muestra primero el reloj de 159 €.
 ---
 
 *Material del Master Desarrollo Agéntico · Proyecto Ecommerce · The Power · Ignacio de Pastors*
+
+# Proyecto Ecommerce · Sesión 3 · Checkout y confirmaciones · Prompts para Claude Code
+
+Estos son los prompts que usamos en la práctica, en el mismo orden que en clase. Cópialos y pégalos en Claude Code uno a uno.
+
+**Cómo usarlos**
+1. Pega el prompt del paso y deja que Claude Code proponga los cambios.
+2. **Lee el código antes de aceptar** (y los comandos, como `npm install` o `prisma migrate`, antes de permitirlos).
+3. Ejecuta y compara con el apartado *Qué deberías ver*.
+4. Si no sale lo esperado, vuelve a pedírselo con lo que has aprendido.
+
+> Antes de empezar: la tienda de la Sesión 2 y tus claves de Stripe en modo test. Hoy necesitas la Stripe CLI (un .exe de github.com/stripe/stripe-cli, sin instalar) y una cuenta gratuita de [Resend](https://resend.com) con una API key de solo envío. Ojo: la Stripe CLI 1.52 exige `--events` en `stripe listen`, y Resend sin dominio propio solo envía al email de tu cuenta (ponlo en `EMAIL_PRUEBAS`). Repositorio de referencia: https://github.com/ignaciothepower/tienda-online. **Nunca subas tu `.env`.**
+
+El resultado de referencia, con todo el código comentado, está en la carpeta `codigo/tienda-online` del material.
+
+---
+
+## Paso 1 · Checkout con Stripe (Server Action)
+
+**Qué construye**
+
+- Validar lo que llega del navegador
+- Precios y stock desde la base de datos
+- Pedido PENDIENTE + sesion de Stripe
+- redirect a la pagina de pago
+
+**Prompt**
+
+```text
+Crea el checkout con Stripe usando una Server Action (no una API route): a partir de los productos del carrito, crea una Stripe Checkout Session en modo 'payment' con sus line_items, guarda en metadata lo que necesitare luego (p.ej. el id del pedido) y redirige a session.url. Explica por que el redirect va fuera del try/catch en Next.js.
+```
+
+**Qué deberías ver**
+
+Stripe Checkout en modo Sandbox: 189,70 €, con los precios que calculo nuestro servidor.
+
+---
+
+## Paso 2 · El webhook de confirmacion
+
+**Qué construye**
+
+- Endpoint POST /api/webhooks/stripe
+- Firma verificada con STRIPE_WEBHOOK_SECRET
+- Pedido PENDIENTE -> PAGADO
+- Descontar stock (una sola vez)
+
+**Prompt**
+
+```text
+Crea el endpoint del webhook de Stripe (app/api/webhooks/stripe) que escucha el evento de pago completado. MUY IMPORTANTE: verifica la firma con el STRIPE_WEBHOOK_SECRET antes de fiarte del evento, y solo entonces marca el pedido como pagado en la base de datos. Explica por que no se confirma el pedido en la pagina de exito sino aqui.
+```
+
+**Qué deberías ver**
+
+Dos 400 (sin firma y con firma falsa) y luego el pago real: PAGADO. Al repetirse, se ignora.
+
+---
+
+## Paso 3 · Probar el pago de punta a punta
+
+**Qué construye**
+
+- Stripe CLI (un .exe, sin instalar)
+- stripe listen reenvia los eventos a localhost
+- Pago real con 4242 4242 4242 4242
+- El pedido pasa a PAGADO y baja el stock
+
+**Prompt**
+
+```text
+Guiame para probar el flujo completo en local: instala la Stripe CLI, usa 'stripe listen' para reenviar los eventos a mi webhook local, y haz un pago de prueba con una tarjeta de test de Stripe. Ensename como ver que el pedido pasa a estado pagado en la base de datos. Dame las tarjetas de test mas utiles.
+```
+
+**Qué deberías ver**
+
+Cada pago: una flecha --> (el evento llega) y otra <-- [200] (nuestro webhook contesto bien).
+
+---
+
+## Paso 4 · Emails de confirmacion con Resend
+
+**Qué construye**
+
+- Cuenta gratuita de Resend y API key
+- Plantilla con lineas y total
+- Envio desde el webhook
+- Si el email falla, el pedido sigue pagado
+
+**Prompt**
+
+```text
+Integra Resend (free tier) para enviar un email de confirmacion cuando el webhook confirma el pago: un correo con el resumen del pedido y el total. Configura la API key en el .env y crea una plantilla de email sencilla. Recuerda que el envio debe dispararse desde el webhook, que es el punto fiable.
+```
+
+**Qué deberías ver**
+
+Pedido #9: 2 auriculares y un reloj, 189,70 €. Este HTML llego a un buzon de Gmail de verdad.
+
+---
+
+## Paso 5 · Paginas de exito/cancelacion y cierre
+
+**Qué construye**
+
+- Exito: lee el pedido y cuenta su estado
+- Vacia el carrito del navegador
+- Cancelado: nada cobrado, carrito intacto
+- Commit y repo publico en GitHub
+
+**Prompt**
+
+```text
+Crea las paginas de exito y de cancelacion a las que Stripe redirige tras el pago. En la de exito, muestra un mensaje de gracias y el resumen, pero deja claro (en el codigo) que esta pagina NO confirma el pedido, solo informa: la confirmacion ya la hizo el webhook. Vacia el carrito tras un pago con exito. Commit y resumen de la Sesion 4.
+```
+
+**Qué deberías ver**
+
+Pedido #11 PAGADO: la pagina lo LEE de la base. El icono del carrito ya no marca nada.
+
+---
+
+## Antes de la Sesion 4 · pagos rechazados
+
+**Qué construye**
+
+- Probar un pago rechazado
+- Evento checkout.session.expired
+- Pedidos caducados -> CANCELADO
+
+**Prompt**
+
+```text
+Paga con la tarjeta de prueba de Stripe que simula un rechazo (4000 0000 0000 0002) y explicame que pasa con el pedido en nuestra base de datos. Anade al webhook el evento checkout.session.expired para marcar como CANCELADO un pedido cuyo checkout caduco, manteniendo la verificacion de firma y la idempotencia.
+```
+
+**Qué deberías ver**
+
+El pedido del pago rechazado sigue PENDIENTE y el stock no cambia.
+
+---
+
+*Material del Master Desarrollo Agéntico · Proyecto Ecommerce · The Power · Ignacio de Pastors*
