@@ -2,6 +2,7 @@
 // Es el UNICO sitio donde un pedido pasa a PAGADO: el cliente puede cerrar el navegador, el webhook llega igual.
 import type Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
+import { enviarConfirmacion } from "@/lib/email";
 import { stripe } from "@/lib/stripe";
 
 export async function POST(req: Request) {
@@ -33,11 +34,24 @@ export async function POST(req: Request) {
 
     if (count === 1) {
       // Descontamos el stock de lo vendido
-      const lineas = await prisma.lineaPedido.findMany({ where: { pedidoId } });
+      const lineas = await prisma.lineaPedido.findMany({ where: { pedidoId }, include: { producto: true } });
       for (const l of lineas) {
         await prisma.producto.update({ where: { id: l.productoId }, data: { stock: { decrement: l.cantidad } } });
       }
       console.log(`[webhook] pedido ${pedidoId} PAGADO (${sesion.amount_total} centimos, ${sesion.customer_details?.email})`);
+
+      // El email sale de AQUI, del webhook: si el cliente cierra el navegador tras pagar, lo recibe igual.
+      // Si el email falla, el pedido sigue pagado: lo registramos y respondemos 200 a Stripe.
+      try {
+        await enviarConfirmacion({
+          id: pedidoId,
+          email: sesion.customer_details?.email ?? "",
+          total: sesion.amount_total ?? 0,
+          lineas: lineas.map((l) => ({ nombre: l.producto.nombre, cantidad: l.cantidad, precioUnitario: l.precioUnitario })),
+        });
+      } catch (e) {
+        console.error("[email] no se pudo enviar:", (e as Error).message);
+      }
     } else {
       console.log(`[webhook] pedido ${pedidoId} ya estaba procesado: se ignora`);
     }
