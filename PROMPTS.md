@@ -446,3 +446,148 @@ El pedido del pago rechazado sigue PENDIENTE y el stock no cambia.
 ---
 
 *Material del Master Desarrollo Agéntico · Proyecto Ecommerce · The Power · Ignacio de Pastors*
+
+# Proyecto Ecommerce · Sesión 4 · Despliegue: panel de admin + CI/CD · Prompts para Claude Code
+
+Estos son los prompts que usamos en la práctica, en el mismo orden que en clase. Cópialos y pégalos en Claude Code uno a uno.
+
+**Cómo usarlos**
+1. Pega el prompt del paso y deja que Claude Code proponga los cambios.
+2. **Lee el código antes de aceptar** (y los comandos, como `npm install` o `prisma migrate`, antes de permitirlos).
+3. Ejecuta y compara con el apartado *Qué deberías ver*.
+4. Si no sale lo esperado, vuelve a pedírselo con lo que has aprendido.
+
+> Antes de empezar: la tienda de la Sesión 3 en GitHub (repositorio propio) y una cuenta de [Vercel](https://vercel.com) creada con GitHub (plan Hobby, gratis). Si `npm install -D vitest` da ERESOLVE, sube los tipos: `npm i -D @types/node@24`. En Vercel usa el dominio de producción (sin hash) y crea en Stripe un webhook propio de producción: su secreto es DISTINTO del de `stripe listen`. Demo de referencia: https://tienda-online-ecru.vercel.app
+
+El resultado de referencia, con todo el código comentado, está en la carpeta `codigo/tienda-online` del material.
+
+---
+
+## Paso 1 · Panel de administrador de pedidos
+
+**Qué construye**
+
+- /admin protegido (contrasena de demo)
+- Lista: numero, fecha, cliente, estado, total
+- Filtro por estado con contadores
+- Detalle de cada pedido
+
+**Prompt**
+
+```text
+Crea un panel de administrador en /admin donde el administrador pueda ver la lista de todos los pedidos con su estado, cliente y total, y entrar al detalle de cada uno. Protege la ruta con una comprobacion sencilla (una contrasena de admin en variable de entorno para la demo). Usa componentes de shadcn/ui para la tabla.
+```
+
+**Qué deberías ver**
+
+Los 12 pedidos de las pruebas: 7 pendientes (checkouts abandonados) y 5 pagados.
+
+---
+
+## Paso 2 · Gestionar el estado de los pedidos
+
+**Qué construye**
+
+- Transiciones permitidas en un solo sitio
+- Botones solo con los cambios posibles
+- Server Action + revalidatePath
+- Aviso de confirmacion
+
+**Prompt**
+
+```text
+Anade al panel de admin la posibilidad de cambiar el estado de un pedido (por ejemplo de pagado a enviado o entregado) usando una Server Action que actualiza la base de datos y refresca la vista. Explica como revalidas los datos tras el cambio con revalidatePath.
+```
+
+**Qué deberías ver**
+
+Pedido #11: de Pagado a Enviado con un clic, y el aviso 'Pedido #11: Enviado' abajo a la derecha.
+
+---
+
+## Paso 3 · Preparar produccion: secretos, tests y CI
+
+**Qué construye**
+
+- Secretos solo en variables de entorno
+- 5 tests de reglas (Vitest)
+- npm run build sin errores
+- CI: lint + tipos + tests + build
+
+**Prompt**
+
+```text
+Prepara el proyecto para produccion (como en la sesion de CI/CD): revisa que todas las claves esten en variables de entorno y fuera del codigo, anade un par de tests basicos, y crea un workflow de GitHub Actions que instale, pase el linter y ejecute los tests en cada push. Comprueba que el check sale en verde.
+```
+
+**Qué deberías ver**
+
+Primera ejecucion del CI: 'calidad' en verde en 1 min 13 s.
+
+---
+
+## Paso 4 · Deploy con CI/CD
+
+**Qué construye**
+
+- Vercel (free tier) conectado a GitHub
+- Variables de entorno de produccion
+- Webhook de Stripe apuntando a Vercel
+- Cada push a main = deploy automatico
+
+**Prompt**
+
+```text
+Despliega la tienda en Vercel (free tier): conecta el repositorio para que cada push a main haga deploy automatico, configura las variables de entorno (base de datos gestionada, claves de Stripe) y da de alta la URL del webhook de Stripe en produccion. Comprueba que la tienda funciona online de punta a punta.
+```
+
+**Qué deberías ver**
+
+Congratulations: la tienda en internet, con los 12 productos de Neon, al primer intento.
+
+---
+
+## Paso 5 · Demo final y cierre del proyecto
+
+**Qué construye**
+
+- Compra en produccion con la tarjeta 4242
+- Webhook de Vercel: pedido PAGADO
+- Email en el buzon
+- El pedido en el admin de produccion
+
+**Prompt**
+
+```text
+Hagamos la demo final de punta a punta en produccion: navegar el catalogo con filtros, anadir al carrito, pagar con una tarjeta de test, recibir el email de confirmacion y ver el pedido en el panel de admin. Escribe un README de portfolio que explique la arquitectura, el stack y como ejecutarlo. Deja el proyecto listo como pieza de portfolio.
+```
+
+**Qué deberías ver**
+
+Pedido #13, PAGADO: el webhook de produccion llego antes de que el cliente volviera.
+
+---
+
+## Ejercicio del proyecto · tu tienda online
+
+**Qué construye**
+
+- Catalogo propio
+- Pago confirmado por webhook
+- Email y admin
+- Desplegada con CI y README
+
+**Prompt**
+
+```text
+Quiero adaptar el proyecto tienda-online a mi propia tienda: [describe tu marca y tus productos]. Cambia el seed con mis categorias y productos (precios en centimos), ajusta textos y colores, y comprueba que todo sigue funcionando: catalogo con filtros, carrito persistente, pago con Stripe en modo test confirmado por webhook, email con Resend y panel de admin. Despliegala en Vercel con su webhook de produccion y deja el README de portfolio con mi arquitectura y la URL de la demo.
+```
+
+**Qué deberías ver**
+
+Tu URL de Vercel con tus productos y un pedido de prueba que llega a PAGADO y te envia el email.
+
+---
+
+*Material del Master Desarrollo Agéntico · Proyecto Ecommerce · The Power · Ignacio de Pastors*
+
